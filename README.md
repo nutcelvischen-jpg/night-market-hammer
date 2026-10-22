@@ -2,7 +2,8 @@
 
 > 台灣經典夜市遊戲「釘孤枝」！一邊平頭、一邊尖頭的鐵鎚，看準力道一槌把大鋼釘剛好釘平！
 
-🎮 **線上試玩**：[https://nutcelvischen-jpg.github.io/night-market-hammer/](https://nutcelvischen-jpg.github.io/night-market-hammer/)  
+🎮 **3D 完整版線上試玩**：[https://nutcelvischen-jpg.github.io/night-market-hammer/](https://nutcelvischen-jpg.github.io/night-market-hammer/)  
+📱 **手機極速簡化版**：[https://nutcelvischen-jpg.github.io/night-market-hammer-mobile/](https://nutcelvischen-jpg.github.io/night-market-hammer-mobile/)  
 🗣️ **配音試聽頁**：[攤主開講試聽](https://nutcelvischen-jpg.github.io/night-market-hammer/voice-preview.html)
 
 ---
