@@ -1,19 +1,22 @@
-地獄難度 1.2 完整專案
+煉獄挑戰 1.3 完整專案
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer
 
 完整 ZIP
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer_hard.zip
 
-上一版 ZIP
-/Users/chenchunchih/Desktop/voice to text/night_market_hammer_hard_v1.1.zip
+上版 ZIP
+/Users/chenchunchih/Desktop/voice to text/night_market_hammer_hard_v1.2.1.zip
 
-程式及資源路徑（不含 Git 內部資料）
+程式及資源路徑
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/.gitignore
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/.nojekyll
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/README.md
+/Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-guide-fix/index.html
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-hell/README.md
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-hell/index.html
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-hell/tests/strike-timeline.cjs
+/Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-inferno/index.html
+/Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-inferno/tests/strike-timeline.cjs
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/index.before-depth-closeup.html
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/index.before-hard.html
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/index.before-impact.html
