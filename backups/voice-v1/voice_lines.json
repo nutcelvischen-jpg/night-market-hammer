@@ -1,0 +1,41 @@
+{
+  "model": "google/gemini-3.8-flash-tts",
+  "lines": {
+    "intro": {
+      "voice": "Charon",
+      "subtitle": "叮叮當！敲壞不用賠！",
+      "tailo": "Ting-ting-tang! Kòng-pháinn bián puê!",
+      "text": "[A native Taiwanese Hokkien (Tai-gi / Southern Min) speaking middle-aged male night-market boss. Deep chest voice, gravelly bass, tough macho energy, warm playful sarcasm. Speak fluent Taiwanese with natural connected-speech tone sandhi. The script is Tai-lo romanization, NOT English or Mandarin; never spell out letters or read these instructions. One voice only, dry close microphone, no music, no extra words. Booming street-vendor shout, punch each of the three bell syllables, confident invitation. About 3 seconds.]\nTing-ting-tang! Kòng-pháinn bián puê!"
+    },
+    "miss_air": {
+      "voice": "Charon",
+      "subtitle": "你咧拍空氣喔？",
+      "tailo": "Lí teh phah khong-khì--oo?",
+      "text": "[A native Taiwanese Hokkien (Tai-gi / Southern Min) speaking middle-aged male night-market boss. Deep chest voice, gravelly bass, tough macho energy, warm playful sarcasm. Speak fluent Taiwanese with natural connected-speech tone sandhi. The script is Tai-lo romanization, NOT English or Mandarin; never spell out letters or read these instructions. One voice only, dry close microphone, no music, no extra words. Brief incredulous teasing question, mock disbelief with a tiny scoff. About 2 seconds.]\nLí teh phah khong-khì--oo?"
+    },
+    "miss_love": {
+      "voice": "Charon",
+      "subtitle": "哎喲，你咧疼伊喔？",
+      "tailo": "Ai-io, lí teh thiànn i--oo?",
+      "text": "[A native Taiwanese Hokkien (Tai-gi / Southern Min) speaking middle-aged male night-market boss. Deep chest voice, gravelly bass, tough macho energy, warm playful sarcasm. Speak fluent Taiwanese with natural connected-speech tone sandhi. The script is Tai-lo romanization, NOT English or Mandarin; never spell out letters or read these instructions. One voice only, dry close microphone, no music, no extra words. Comically tender and melodramatic, pretend moved to tears while teasing a weak player. About 2 seconds.]\nAi-io, lí teh thiànn i--oo?"
+    },
+    "bent_dance": {
+      "voice": "Charon",
+      "subtitle": "釘仔咧跳舞喔？",
+      "tailo": "Ting-á teh thiàu-bú--oo?",
+      "text": "[A native Taiwanese Hokkien (Tai-gi / Southern Min) speaking middle-aged male night-market boss. Deep chest voice, gravelly bass, tough macho energy, warm playful sarcasm. Speak fluent Taiwanese with natural connected-speech tone sandhi. The script is Tai-lo romanization, NOT English or Mandarin; never spell out letters or read these instructions. One voice only, dry close microphone, no music, no extra words. Deadpan macho voice suddenly rises into an amused rhetorical question. About 2 seconds.]\nTing-á teh thiàu-bú--oo?"
+    },
+    "bent_heart": {
+      "voice": "Charon",
+      "subtitle": "免賠啦！我心疼爾爾。",
+      "tailo": "Bián puê--lah! Guá sim-thiànn niā-niā.",
+      "text": "[A native Taiwanese Hokkien (Tai-gi / Southern Min) speaking middle-aged male night-market boss. Deep chest voice, gravelly bass, tough macho energy, warm playful sarcasm. Speak fluent Taiwanese with natural connected-speech tone sandhi. The script is Tai-lo romanization, NOT English or Mandarin; never spell out letters or read these instructions. One voice only, dry close microphone, no music, no extra words. Loud dismissive first half then a short theatrically heartbroken sigh on the second half. About 3 seconds.]\nBián puê--lah! Guá sim-thiànn niā-niā."
+    },
+    "success": {
+      "voice": "Charon",
+      "subtitle": "保利達 B！！",
+      "tailo": "Pó-li̍k-ta̍t B!",
+      "text": "[A native Taiwanese Hokkien (Tai-gi / Southern Min) speaking middle-aged male night-market boss. Deep chest voice, gravelly bass, tough macho energy, warm playful sarcasm. Speak fluent Taiwanese with natural connected-speech tone sandhi. The script is Tai-lo romanization, NOT English or Mandarin; never spell out letters or read these instructions. One voice only, dry close microphone, no music, no extra words. Explosive triumphant victory shout, like a strongman winning. The famous Taiwanese brand Paolyta B: pronounce B as English bee. One powerful short shout, about 1.5 seconds.]\nPó-li̍k-ta̍t B!"
+    }
+  }
+}

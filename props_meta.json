@@ -1,0 +1,42 @@
+{
+  "hammer": {
+    "length": 0.35,
+    "head_width": 0.16,
+    "flat_face_pos": [
+      0.07,
+      0.0,
+      0.015
+    ],
+    "sharp_point_pos": [
+      -0.09,
+      0.0,
+      0.012
+    ],
+    "center_of_mass": [
+      0.0,
+      0.0,
+      -0.08
+    ]
+  },
+  "table": {
+    "width": 0.9,
+    "depth": 0.65,
+    "height": 0.7
+  },
+  "log": {
+    "radius": 0.16,
+    "height": 0.24,
+    "top_center": [
+      0.05,
+      0.0,
+      0.94
+    ]
+  },
+  "nail": {
+    "total_length": 0.12,
+    "shaft_radius": 0.005,
+    "head_radius": 0.011,
+    "initial_protrusion": 0.07,
+    "flush_target_protrusion": 0.005
+  }
+}

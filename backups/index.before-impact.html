@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>硬漢夜市：釘孤枝 (Night Market Nail Hammer) - 慢動作揮槌版</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* 電影感邊框 */
+    .letterbox {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 0px;
+      background: #0f172a;
+      z-index: 20;
+      transition: height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+      pointer-events: none;
+      opacity: 0.95;
+    }
+    #letterbox-top { top: 0; }
+    #letterbox-bottom { bottom: 0; }
+    body.slowmo-active .letterbox {
+      height: 54px;
+    }
+
+    /* UI Overlay - 淺色現代毛玻璃 */
+    #ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 25;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px 24px;
+      transition: opacity 0.3s;
+    }
+
+    header {
+      pointer-events: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .title-box {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border-radius: 16px;
+      padding: 14px 20px;
+      backdrop-filter: blur(16px);
+    }
+    .title-box h1 {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #ea580c;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .title-box p {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .head-toggle-container {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+    .toggle-btn {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .toggle-btn.active {
+      background: #ea580c;
+      color: #fff;
+      border-color: #c2410c;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+    }
+
+    .top-right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .stats-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 14px;
+      padding: 10px 18px;
+      display: flex;
+      gap: 16px;
+      font-weight: bold;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .stat-val {
+      font-size: 17px;
+      color: #0f172a;
+      font-weight: 900;
+    }
+
+    .speed-selector {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      padding: 4px 6px;
+      display: flex;
+      gap: 4px;
+      pointer-events: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .speed-btn {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .speed-btn.active {
+      background: #ea580c;
+      color: #fff;
+    }
+
+    /* 慢動作揮槌打擊 HUD */
+    #strike-hud {
+      position: absolute;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid #ea580c;
+      box-shadow: 0 8px 30px rgba(234, 88, 12, 0.35);
+      border-radius: 30px;
+      padding: 8px 26px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 30;
+      color: #fff;
+    }
+    #strike-hud.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    .hud-badge {
+      background: #ef4444;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 3px 9px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.85; }
+      50% { opacity: 1; transform: scale(1.06); }
+      100% { opacity: 0.85; }
+    }
+    .hud-reading {
+      font-size: 18px;
+      font-weight: 900;
+      color: #38bdf8;
+      font-family: monospace;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-reading span {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* 底部力量控制器 */
+    #bottom-control-area {
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 10px;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    body.slowmo-active #bottom-control-area {
+      opacity: 0.15;
+      pointer-events: none;
+      transform: translateY(20px);
+    }
+
+    .gauge-wrapper {
+      width: min(92vw, 440px);
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 18px;
+      padding: 14px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      backdrop-filter: blur(16px);
+      text-align: center;
+    }
+    .gauge-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #334155;
+    }
+    .gauge-track {
+      position: relative;
+      width: 100%;
+      height: 36px;
+      background: #e2e8f0;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 2px solid #cbd5e1;
+    }
+    .gauge-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #f97316 75%, #ef4444 100%);
+      border-radius: 16px;
+    }
+    .sweet-spot-marker {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: rgba(16, 185, 129, 0.4);
+      border-left: 2px dashed #059669;
+      border-right: 2px dashed #059669;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #064e3b;
+      pointer-events: none;
+    }
+
+    /* 按鈕 */
+    .action-btn-row {
+      display: flex;
+      gap: 12px;
+      width: min(92vw, 440px);
+    }
+    #strike-btn {
+      flex: 1;
+      height: 60px;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      border: none;
+      border-radius: 16px;
+      font-size: 20px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(234, 88, 12, 0.35);
+      transition: transform 0.08s, background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    #strike-btn:active, #strike-btn.charging {
+      transform: scale(0.96);
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+    }
+    #reset-btn {
+      width: 80px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      color: #334155;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      transition: background 0.15s;
+    }
+    #reset-btn:active {
+      background: #e2e8f0;
+    }
+
+    /* 評分彈窗 */
+    #feedback-popup {
+      position: absolute;
+      top: 42%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid #f97316;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.15), 0 0 25px rgba(249, 115, 22, 0.25);
+      border-radius: 20px;
+      padding: 24px 36px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+      z-index: 50;
+      color: #0f172a;
+      backdrop-filter: blur(20px);
+    }
+    #feedback-popup.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    #popup-grade {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+    }
+    #popup-desc {
+      font-size: 15px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    #popup-subdetail {
+      font-size: 13px;
+      color: #ea580c;
+      margin-top: 8px;
+      font-family: monospace;
+      font-weight: 700;
+    }
+
+    .hint-bar {
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+      font-weight: 500;
+    }
+    .shortcut-badge {
+      display: inline-block;
+      background: #e2e8f0;
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: #0f172a;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    /* Loading Screen */
+    #loading-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.4s;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #e2e8f0;
+      border-top: 5px solid #ea580c;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+
+  <div id="letterbox-top" class="letterbox"></div>
+  <div id="letterbox-bottom" class="letterbox"></div>
+
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <h2 style="color:#ea580c; letter-spacing: 2px;">夜市攤位佈置中...</h2>
+    <p style="color:#64748b; font-size: 13px; margin-top:8px;">正在組裝硬漢手臂、鐵鎚與原木鋼釘</p>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <!-- 打擊慢動作即時 HUD -->
+  <div id="strike-hud">
+    <div class="hud-badge">● 慢動作重擊 SLOW-MO</div>
+    <div class="hud-reading">
+      <span>已釘入:</span>
+      <b id="hud-sink-mm">+0.0 mm</b>
+    </div>
+    <div class="hud-reading" style="color:#f59e0b;">
+      <span>剩餘高度:</span>
+      <b id="hud-remain-mm">70.0 mm</b>
+    </div>
+  </div>
+
+  <div id="ui-layer">
+    <header>
+      <div class="title-box">
+        <h1>🔨 夜市釘孤枝</h1>
+        <p>按住蓄力<b>高高拉起鐵鎚</b>，向下猛砸那一刻自動進入<b>電影級慢動作</b>！</p>
+        <div class="head-toggle-container">
+          <button id="toggle-flat" class="toggle-btn active">⚪ 平頭（穩重實用）</button>
+          <button id="toggle-sharp" class="toggle-btn">🔺 尖頭（硬漢暴擊）</button>
+        </div>
+      </div>
+
+      <div class="top-right-panel">
+        <div class="stats-card">
+          <div class="stat-item">
+            <span class="stat-label">擊槌次數</span>
+            <span id="stat-swings" class="stat-val">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">釘入進度</span>
+            <span id="stat-depth" class="stat-val">0%</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">剩餘高度</span>
+            <span id="stat-protrusion" class="stat-val">70.0mm</span>
+          </div>
+        </div>
+
+        <div class="speed-selector">
+          <span style="font-size: 11px; color:#64748b; align-self:center; margin-left:6px; font-weight:700;">慢動作倍率:</span>
+          <button class="speed-btn active" data-speed="0.25">0.25x 超細膩</button>
+          <button class="speed-btn" data-speed="0.5">0.5x 慢速</button>
+          <button class="speed-btn" data-speed="1.0">1.0x 原速</button>
+        </div>
+      </div>
+    </header>
+
+    <div id="feedback-popup">
+      <div id="popup-grade">PERFECT!</div>
+      <div id="popup-desc">剛好齊平木頭！夜市硬漢傳奇！</div>
+      <div id="popup-subdetail">本次擊入 +42.5mm ｜ 最終剩餘 2.5mm</div>
+    </div>
+
+    <div id="bottom-control-area">
+      <div class="gauge-wrapper">
+        <div class="gauge-header">
+          <span>蓄力力量 (POWER CHARGE) - 越大力拉越高！</span>
+          <span id="power-pct">0%</span>
+        </div>
+        <div class="gauge-track">
+          <div class="sweet-spot-marker" id="sweet-marker" style="left: 74%; width: 12%;">
+            <span>剛好釘平</span>
+          </div>
+          <div class="gauge-fill" id="gauge-fill"></div>
+        </div>
+      </div>
+
+      <div class="action-btn-row">
+        <button id="strike-btn">
+          <span>💥 按住拉起鐵鎚 / 放開猛力砸下</span>
+        </button>
+        <button id="reset-btn" title="拔起重插新釘子">🔄 重插</button>
+      </div>
+
+      <div class="hint-bar">
+        操作說明：按住鍵盤 <span class="shortcut-badge">空白鍵 Space</span> 或按鈕蓄力，放開後完整觀看<b>手臂向下揮砸與命中木頭</b>的慢動作全景！
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. Web Audio 音效生成
+    // ==========================================
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // 拉起鐵鎚肌肉緊繃音 (Muscle strain / leather creak)
+      playStrain() {
+        this.init();
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(60, t);
+        osc.frequency.linearRampToValueAtTime(110, t + 0.3);
+        gain.gain.setValueAtTime(0.01, t);
+        gain.gain.linearRampToValueAtTime(0.08, t + 0.2);
+        gain.gain.linearRampToValueAtTime(0.001, t + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.3);
+      }
+
+      // 鐵鎚向下猛砸呼嘯聲 (Heavy wind whoosh)
+      playSwingWhoosh(duration = 0.6) {
+        this.init();
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(100, t);
+        osc.frequency.exponentialRampToValueAtTime(320, t + duration * 0.7);
+        osc.frequency.exponentialRampToValueAtTime(70, t + duration);
+        gain.gain.setValueAtTime(0.01, t);
+        gain.gain.linearRampToValueAtTime(0.5, t + duration * 0.7);
+        gain.gain.linearRampToValueAtTime(0.01, t + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + duration);
+      }
+
+      // 命中清脆金屬聲
+      playMetalClang(intensity = 1.0, isSharp = false) {
+        this.init();
+        const t = this.ctx.currentTime;
+        
+        const osc1 = this.ctx.createOscillator();
+        const gain1 = this.ctx.createGain();
+        osc1.type = isSharp ? 'triangle' : 'sine';
+        osc1.frequency.setValueAtTime(isSharp ? 1800 : 1100, t);
+        osc1.frequency.exponentialRampToValueAtTime(isSharp ? 3200 : 620, t + 0.35);
+        gain1.gain.setValueAtTime(0.8 * intensity, t);
+        gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+        osc1.connect(gain1);
+        gain1.connect(this.ctx.destination);
+        osc1.start(t);
+        osc1.stop(t + 0.5);
+
+        const osc2 = this.ctx.createOscillator();
+        const gain2 = this.ctx.createGain();
+        osc2.type = 'sawtooth';
+        osc2.frequency.setValueAtTime(280, t);
+        osc2.frequency.exponentialRampToValueAtTime(65, t + 0.35);
+        gain2.gain.setValueAtTime(0.9 * intensity, t);
+        gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+        osc2.connect(gain2);
+        gain2.connect(this.ctx.destination);
+        osc2.start(t);
+        osc2.stop(t + 0.45);
+      }
+
+      // 木頭被擠壓沉入音效
+      playWoodCreak(duration = 0.6) {
+        this.init();
+        const t = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * duration;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.sin(i * 0.08) * (1 - i / bufferSize);
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(400, t);
+        filter.Q.setValueAtTime(3.5, t);
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.linearRampToValueAtTime(0.001, t + duration);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(t);
+      }
+
+      playCheer() {
+        this.init();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const t = this.ctx.currentTime + idx * 0.08;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.4, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.4);
+        });
+      }
+
+      playCrack() {
+        this.init();
+        const t = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.3;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.sin(i * 0.05) * Math.exp(-i / (bufferSize * 0.3));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.9, t);
+        noise.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(t);
+      }
+    }
+    const sfx = new SoundFX();
+
+    // ==========================================
+    // 2. Three.js 場景建構 (淺色明亮風格)
+    // ==========================================
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    
+    scene.background = new THREE.Color(0xf1f5f9);
+    scene.fog = new THREE.FogExp2(0xf1f5f9, 0.06);
+
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.05, 50);
+    
+    // 主全景視角：完美看清整隻手臂、鐵鎚、原木與釘子
+    const DEFAULT_CAM_POS = new THREE.Vector3(0.55, 1.25, 0.65);
+    const DEFAULT_CAM_LOOKAT = new THREE.Vector3(0.06, 0.96, 0.0);
+
+    // 慢動作特寫鏡頭：45度側視動作大片視角，清楚看到「手拿鐵鎚從空中猛砸到釘子」的全程
+    const ACTION_CAM_POS = new THREE.Vector3(0.38, 1.12, 0.42);
+    const ACTION_CAM_LOOKAT = new THREE.Vector3(0.05, 0.98, 0.0);
+
+    camera.position.copy(DEFAULT_CAM_POS);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.copy(DEFAULT_CAM_LOOKAT);
+    controls.maxPolarAngle = Math.PI / 2 + 0.02;
+    controls.minDistance = 0.15;
+    controls.maxDistance = 2.8;
+
+    // 燈光系統
+    const sunLight = new THREE.DirectionalLight(0xfffbeb, 2.3);
+    sunLight.position.set(1.6, 3.5, 1.8);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 8;
+    sunLight.shadow.camera.left = -1.2;
+    sunLight.shadow.camera.right = 1.2;
+    sunLight.shadow.camera.top = 1.2;
+    sunLight.shadow.camera.bottom = -1.2;
+    sunLight.shadow.bias = -0.0008;
+    scene.add(sunLight);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambientLight);
+
+    const fillLight = new THREE.DirectionalLight(0xe0f2fe, 0.85);
+    fillLight.position.set(-2.0, 2.0, -1.5);
+    scene.add(fillLight);
+
+    // 淺色地面
+    const floorGeo = new THREE.PlaneGeometry(16, 16);
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.9, metalness: 0.02 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // 3D 深度標尺 (淺色)
+    const rulerGroup = new THREE.Group();
+    rulerGroup.position.set(0.05, 0.94, 0.025);
+    scene.add(rulerGroup);
+
+    const rulerPlank = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.022, 0.085),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.92, side: THREE.DoubleSide })
+    );
+    rulerPlank.position.set(0, 0.0425, 0);
+    rulerGroup.add(rulerPlank);
+
+    const perfectZoneMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.02, 0.005),
+      new THREE.MeshBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.95 })
+    );
+    perfectZoneMesh.position.set(0, 0.0025, 0.001);
+    rulerGroup.add(perfectZoneMesh);
+
+    for (let i = 0; i <= 70; i += 10) {
+      const lineH = i * 0.001;
+      const tick = new THREE.Mesh(
+        new THREE.PlaneGeometry(i % 20 === 0 ? 0.018 : 0.012, 0.0008),
+        new THREE.MeshBasicMaterial({ color: i === 0 ? 0x059669 : 0x475569 })
+      );
+      tick.position.set(0, lineH, 0.001);
+      rulerGroup.add(tick);
+    }
+    rulerGroup.rotation.y = Math.PI / 4;
+
+    // 粒子火花與木屑
+    const particles = [];
+    function spawnSparks(origin, count = 25, isWood = false, speedMult = 1.0) {
+      for (let i = 0; i < count; i++) {
+        const pGeo = new THREE.SphereGeometry(isWood ? 0.0035 : 0.0025, 4, 4);
+        const pMat = new THREE.MeshBasicMaterial({
+          color: isWood ? (Math.random() > 0.5 ? 0x92400e : 0xb45309) : (Math.random() > 0.3 ? 0xf59e0b : 0xef4444)
+        });
+        const p = new THREE.Mesh(pGeo, pMat);
+        p.position.copy(origin);
+        p.position.x += (Math.random() - 0.5) * 0.008;
+        p.position.z += (Math.random() - 0.5) * 0.008;
+
+        const speed = (isWood ? 0.45 : 1.1) * (0.5 + Math.random() * 0.8) * speedMult;
+        const angle = Math.random() * Math.PI * 2;
+        const elevation = Math.random() * 0.8 + 0.2;
+        
+        const velocity = new THREE.Vector3(
+          Math.cos(angle) * Math.cos(elevation) * speed,
+          Math.sin(elevation) * speed + (isWood ? 0.3 : 0.6) * speedMult,
+          Math.sin(angle) * Math.cos(elevation) * speed
+        );
+
+        scene.add(p);
+        particles.push({ mesh: p, vel: velocity, life: 1.0, decay: isWood ? 0.9 : 1.5 });
+      }
+    }
+
+    function updateParticles(dt, timeScale = 1.0) {
+      const effDt = dt * timeScale;
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.life -= effDt * p.decay;
+        p.vel.y -= 9.8 * effDt;
+        p.mesh.position.addScaledVector(p.vel, effDt);
+        p.mesh.scale.setScalar(Math.max(0.01, p.life));
+
+        if (p.life <= 0) {
+          scene.remove(p.mesh);
+          p.mesh.geometry.dispose();
+          p.mesh.material.dispose();
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    // ==========================================
+    // 3. 道具載入與【手拿鐵鎚】手臂骨骼樞紐架構
+    // ==========================================
+    const loader = new THREE.GLTFLoader();
+    let tableObj = null;
+    let logObj = null;
+    let nailObj = null;
+    let handHammerObj = null;
+    
+    // 手臂與鐵鎚旋轉樞紐 (Arm Pivot)
+    const armPivot = new THREE.Group();
+    scene.add(armPivot);
+
+    const GAME = {
+      initialProtrusion: 0.070,
+      currentProtrusion: 0.070,
+      flushTarget: 0.003,
+      flushTolerance: 0.0035,
+      nailBaseY: 0.94,
+      currentHeadMode: 'flat',
+      swingsCount: 0,
+      isCharging: false,
+      chargeStartTime: 0,
+      chargePower: 0,
+      isStriking: false,
+      slowMoSpeed: 0.25,
+      shakeIntensity: 0
+    };
+
+    const assetList = [
+      { key: 'table', url: 'table.glb' },
+      { key: 'log', url: 'log_block.glb' },
+      { key: 'nail', url: 'nail.glb' },
+      // 載入全新完整手持鐵鎚模型 (包含拳頭、手掌、小臂、護腕)
+      { key: 'hand_hammer', url: 'hammer_hand.glb' }
+    ];
+
+    let loadedCount = 0;
+    assetList.forEach(item => {
+      loader.load(item.url, (gltf) => {
+        const root = gltf.scene;
+        root.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        if (item.key === 'table') {
+          tableObj = root;
+          tableObj.position.set(0, 0, 0);
+          scene.add(tableObj);
+        } else if (item.key === 'log') {
+          logObj = root;
+          logObj.position.set(0.05, 0.70, 0.0);
+          scene.add(logObj);
+        } else if (item.key === 'nail') {
+          nailObj = root;
+          updateNailTransform();
+          scene.add(nailObj);
+        } else if (item.key === 'hand_hammer') {
+          handHammerObj = root;
+          // 將手與鐵鎚加入旋轉關節
+          // 調整手持鐵鎚在樞紐中的局部中心，讓旋轉樞紐位於手腕關節處 (z=+0.26)
+          handHammerObj.position.set(0, 0, 0.26);
+          armPivot.add(handHammerObj);
+          resetArmRestPose();
+        }
+
+        loadedCount++;
+        if (loadedCount === assetList.length) {
+          const loadingScreen = document.getElementById('loading-screen');
+          loadingScreen.style.opacity = '0';
+          setTimeout(() => loadingScreen.style.display = 'none', 400);
+        }
+      });
+    });
+
+    function updateNailTransform() {
+      if (!nailObj) return;
+      const nailZ = GAME.nailBaseY + GAME.currentProtrusion - 0.12;
+      nailObj.position.set(0.05, nailZ, 0.0);
+    }
+
+    // 手持鐵鎚的預備姿勢 (Rest / Ready Pose)
+    // 手臂自然握持，鐵鎚打擊面懸於鋼釘上方約 12cm 處
+    function resetArmRestPose() {
+      if (!armPivot || !handHammerObj) return;
+      // 手腕關節位置：在釘子斜後方
+      armPivot.position.set(0.25, GAME.nailBaseY + 0.32, 0.0);
+      
+      if (GAME.currentHeadMode === 'flat') {
+        // 平頭打擊面朝前 (-X)
+        handHammerObj.rotation.set(0, 0, Math.PI / 2 + 0.2);
+      } else {
+        // 尖頭打擊面朝前 (-X)
+        handHammerObj.rotation.set(Math.PI, 0, -(Math.PI / 2 + 0.2));
+      }
+      armPivot.rotation.set(0, 0, 0);
+    }
+
+    // ==========================================
+    // 4. UI 控制與綁定
+    // ==========================================
+    const gaugeFill = document.getElementById('gauge-fill');
+    const powerPct = document.getElementById('power-pct');
+    const strikeBtn = document.getElementById('strike-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const statSwings = document.getElementById('stat-swings');
+    const statDepth = document.getElementById('stat-depth');
+    const statProtrusion = document.getElementById('stat-protrusion');
+    const toggleFlat = document.getElementById('toggle-flat');
+    const toggleSharp = document.getElementById('toggle-sharp');
+    const feedbackPopup = document.getElementById('feedback-popup');
+    const popupGrade = document.getElementById('popup-grade');
+    const popupDesc = document.getElementById('popup-desc');
+    const popupSubdetail = document.getElementById('popup-subdetail');
+    const strikeHud = document.getElementById('strike-hud');
+    const hudSinkMm = document.getElementById('hud-sink-mm');
+    const hudRemainMm = document.getElementById('hud-remain-mm');
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        GAME.slowMoSpeed = parseFloat(btn.dataset.speed);
+      });
+    });
+
+    function setHeadMode(mode) {
+      if (GAME.isStriking) return;
+      GAME.currentHeadMode = mode;
+      if (mode === 'flat') {
+        toggleFlat.classList.add('active');
+        toggleSharp.classList.remove('active');
+      } else {
+        toggleSharp.classList.add('active');
+        toggleFlat.classList.remove('active');
+      }
+      resetArmRestPose();
+    }
+    toggleFlat.addEventListener('click', () => setHeadMode('flat'));
+    toggleSharp.addEventListener('click', () => setHeadMode('sharp'));
+
+    // 蓄力：手臂向後向上高高拉起 (Wind-Up)
+    function startCharging() {
+      if (GAME.isStriking) return;
+      sfx.init();
+      GAME.isCharging = true;
+      GAME.chargeStartTime = performance.now();
+      strikeBtn.classList.add('charging');
+      sfx.playStrain();
+    }
+
+    function releaseAndStrike() {
+      if (!GAME.isCharging || GAME.isStriking) return;
+      GAME.isCharging = false;
+      strikeBtn.classList.remove('charging');
+      executeFullArmStrike(GAME.chargePower);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && !e.repeat) {
+        e.preventDefault();
+        startCharging();
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        releaseAndStrike();
+      }
+    });
+
+    strikeBtn.addEventListener('mousedown', startCharging);
+    window.addEventListener('mouseup', releaseAndStrike);
+    strikeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startCharging(); });
+    window.addEventListener('touchend', releaseAndStrike);
+
+    resetBtn.addEventListener('click', () => {
+      if (GAME.isStriking) return;
+      resetNail();
+    });
+
+    function resetNail() {
+      GAME.currentProtrusion = GAME.initialProtrusion;
+      GAME.swingsCount = 0;
+      updateUI();
+      updateNailTransform();
+      resetArmRestPose();
+      if (nailObj) nailObj.rotation.set(0, 0, 0);
+      feedbackPopup.classList.remove('show');
+      strikeHud.classList.remove('show');
+      document.body.classList.remove('slowmo-active');
+    }
+
+    // ==========================================
+    // 5. 【手拿鐵鎚・往下那一刻抓 SLOW MOTION】核心動畫引擎
+    // ==========================================
+    function executeFullArmStrike(power) {
+      GAME.isStriking = true;
+      GAME.swingsCount++;
+      updateUI();
+
+      const isSharp = GAME.currentHeadMode === 'sharp';
+      let penetrationCoeff = isSharp ? 0.092 : 0.072;
+      const totalDriveDistance = Math.pow(power, 1.8) * penetrationCoeff;
+      const startProtrusion = GAME.currentProtrusion;
+      const targetProtrusion = Math.max(0.0005, startProtrusion - totalDriveDistance);
+      const actualDriven = startProtrusion - targetProtrusion;
+
+      // 蓄力時手臂拉起的位置
+      const windupPos = armPivot.position.clone();
+      const windupRotZ = armPivot.rotation.z;
+
+      // 擊中釘帽時的手臂關節目標位置
+      // 手臂下揮，讓鐵鎚打擊面剛好壓在釘帽頂端 (x=0.05, y = nailBaseY + startProtrusion)
+      const strikeArmPos = new THREE.Vector3(0.24, GAME.nailBaseY + startProtrusion + 0.08, 0.0);
+      const strikeRotZ = -Math.PI * 0.44; // 向下砸到底的強力傾角
+
+      const startTime = performance.now();
+      const savedCamPos = camera.position.clone();
+      const savedCamTarget = controls.target.clone();
+
+      // 時間軸節奏：
+      // 階段 A (0 ~ 0.12s)：爆發啟動，手臂自高處向前啟動下揮 (Fast Normal Speed)
+      // 階段 B (0.12s ~ 0.12s + durSlowmoSwing)：【鐵鎚往下那一刻！】啟動 Slow Motion，鏡頭切入特寫，看清整隻手握著鐵鎚狠狠往下砸中釘子！
+      // 階段 C (durSlowmoSwing ~ + durPenetrate)：鐵鎚狠狠砸在釘帽上，慢動作逐毫米擠入木頭！
+      // 階段 D (Hold)：在特寫中定格 1.2s，清楚檢視齊平程度
+      // 階段 E：平滑拉回全景
+      const durInitialLaunch = 0.12; 
+      const scale = 1.0 / GAME.slowMoSpeed;
+      const durSlowmoSwing = 0.65 * scale; // 鐵鎚往下砸的慢動作時間
+      const durPenetrate = 0.9 * scale;   // 釘子沉入木頭的慢動作時間
+      const durHold = 1.2;
+      const durCamReturn = 0.6;
+
+      let slowmoTriggered = false;
+      let impactTriggered = false;
+
+      function renderFrame() {
+        const now = performance.now();
+        const elapsed = (now - startTime) / 1000;
+
+        // 階段 A: 剛放開揮擊，瞬間原速向前加速啟動
+        if (elapsed < durInitialLaunch) {
+          const t = elapsed / durInitialLaunch;
+          // 手臂稍微前移
+          armPivot.position.lerpVectors(windupPos, new THREE.Vector3(0.25, windupPos.y + 0.05, 0.0), t);
+          armPivot.rotation.z = THREE.MathUtils.lerp(windupRotZ, windupRotZ - 0.2, t);
+        }
+        // 階段 B: 【鐵鎚往下 那一刻！抓 SLOW MOTION！】
+        else if (elapsed < durInitialLaunch + durSlowmoSwing) {
+          if (!slowmoTriggered) {
+            slowmoTriggered = true;
+            document.body.classList.add('slowmo-active');
+            strikeHud.classList.add('show');
+            controls.enabled = false;
+            sfx.playSwingWhoosh(durSlowmoSwing);
+          }
+
+          const swingElapsed = elapsed - durInitialLaunch;
+          const t = swingElapsed / durSlowmoSwing;
+          
+          // 鏡頭流暢推至「側方 3/4 英雄打擊動作特寫視角」
+          // 可以同時看見完整的手臂肌肉、鐵鎚下砸弧線、以及即將受擊的鋼釘！
+          const camEase = t * t * (3 - 2 * t);
+          camera.position.lerpVectors(savedCamPos, ACTION_CAM_POS, camEase);
+          controls.target.lerpVectors(savedCamTarget, ACTION_CAM_LOOKAT, camEase);
+
+          // 鐵鎚與手臂在慢動作中優雅且極富力量地下砸 (Slow-Mo Arc Descend)
+          const swingEase = Math.pow(t, 2.8);
+          armPivot.position.lerpVectors(windupPos, strikeArmPos, swingEase);
+          armPivot.rotation.z = THREE.MathUtils.lerp(windupRotZ, strikeRotZ, swingEase);
+        }
+        // 階段 C: 撞擊釘子瞬間 ➔ 慢動作逐毫米釘入木頭
+        else if (elapsed < durInitialLaunch + durSlowmoSwing + durPenetrate) {
+          if (!impactTriggered) {
+            impactTriggered = true;
+            sfx.playMetalClang(0.8 + power * 0.7, isSharp);
+            sfx.playWoodCreak(durPenetrate);
+            GAME.shakeIntensity = 0.02 * power;
+
+            // 撞擊點火花四射
+            const hitPos = new THREE.Vector3(0.05, GAME.nailBaseY + startProtrusion, 0.0);
+            spawnSparks(hitPos, Math.floor(25 + power * 35), false, GAME.slowMoSpeed);
+            if (power > 0.4) spawnSparks(hitPos, Math.floor(12 + power * 22), true, GAME.slowMoSpeed);
+          }
+
+          camera.position.copy(ACTION_CAM_POS);
+          controls.target.copy(ACTION_CAM_LOOKAT);
+
+          const penElapsed = elapsed - (durInitialLaunch + durSlowmoSwing);
+          const t = penElapsed / durPenetrate;
+          const ease = Math.sin(t * Math.PI * 0.5);
+
+          // 釘子實時下沉
+          GAME.currentProtrusion = THREE.MathUtils.lerp(startProtrusion, targetProtrusion, ease);
+          updateNailTransform();
+
+          // 手臂握著鐵鎚，跟隨釘子一同下壓沉入
+          armPivot.position.y = strikeArmPos.y + (GAME.currentProtrusion - startProtrusion);
+          armPivot.rotation.z = strikeRotZ - (1 - ease) * 0.03;
+
+          const sinkMm = ((startProtrusion - GAME.currentProtrusion) * 1000).toFixed(1);
+          const remainMm = (GAME.currentProtrusion * 1000).toFixed(1);
+          hudSinkMm.innerText = `+${sinkMm} mm`;
+          hudRemainMm.innerText = `${remainMm} mm`;
+          updateUI();
+        }
+        // 階段 D: 特寫定格檢視 (清楚看到釘帽與原木的最終距離)
+        else if (elapsed < durInitialLaunch + durSlowmoSwing + durPenetrate + durHold) {
+          GAME.currentProtrusion = targetProtrusion;
+          updateNailTransform();
+
+          const holdElapsed = elapsed - (durInitialLaunch + durSlowmoSwing + durPenetrate);
+          // 手臂肌肉反震緩衝微顫
+          const bounce = Math.sin(holdElapsed * 4) * 0.003;
+          armPivot.position.y = strikeArmPos.y + (targetProtrusion - startProtrusion) + bounce;
+        }
+        // 階段 E: 鏡頭平滑拉回全景
+        else if (elapsed < durInitialLaunch + durSlowmoSwing + durPenetrate + durHold + durCamReturn) {
+          const retElapsed = elapsed - (durInitialLaunch + durSlowmoSwing + durPenetrate + durHold);
+          const t = retElapsed / durCamReturn;
+          const ease = t * t * (3 - 2 * t);
+          camera.position.lerpVectors(ACTION_CAM_POS, DEFAULT_CAM_POS, ease);
+          controls.target.lerpVectors(ACTION_CAM_LOOKAT, DEFAULT_CAM_LOOKAT, ease);
+          strikeHud.classList.remove('show');
+        }
+        // 動畫完全結束
+        else {
+          camera.position.copy(DEFAULT_CAM_POS);
+          controls.target.copy(DEFAULT_CAM_LOOKAT);
+          controls.enabled = true;
+          document.body.classList.remove('slowmo-active');
+          resetArmRestPose();
+          GAME.isStriking = false;
+
+          evaluateFinalResult(power, startProtrusion, targetProtrusion, actualDriven, isSharp);
+          return;
+        }
+
+        requestAnimationFrame(renderFrame);
+      }
+
+      requestAnimationFrame(renderFrame);
+    }
+
+    function evaluateFinalResult(power, prevH, curH, driven, isSharp) {
+      let grade = "";
+      let desc = "";
+      let color = "#ea580c";
+      const drivenMm = (driven * 1000).toFixed(1);
+      const remainMm = (curH * 1000).toFixed(1);
+
+      if (curH <= GAME.flushTarget + GAME.flushTolerance && curH >= 0.001) {
+        grade = "🏆 完美齊平！(PERFECT)";
+        desc = "太神了！一槌剛好釘平原木切面，一分不差！夜市硬漢傳奇！";
+        color = "#10b981";
+        sfx.playCheer();
+      } else if (curH < 0.001 || (power > 0.90 && isSharp)) {
+        grade = "💥 大力出奇蹟（敲歪了啦！）";
+        desc = "力道暴表！木頭發出裂痕悲鳴，釘子直接被打扁砸歪了！";
+        color = "#ef4444";
+        sfx.playCrack();
+        if (nailObj) nailObj.rotation.z = (Math.random() > 0.5 ? 1 : -1) * 0.26;
+      } else if (driven < 0.012) {
+        grade = "💤 沒吃飽喔？";
+        desc = "輕輕碰了一下，阿伯在旁邊都看困了！";
+        color = "#64748b";
+      } else {
+        grade = "🔥 硬漢好球！";
+        desc = "穿透力十足，距離完美齊平還差一點點！再來一記精準打擊！";
+        color = "#f97316";
+      }
+
+      popupGrade.innerText = grade;
+      popupGrade.style.color = color;
+      popupDesc.innerText = desc;
+      popupSubdetail.innerText = `本次擊入: +${drivenMm} mm ｜ 剩餘高度: ${remainMm} mm`;
+      feedbackPopup.classList.add('show');
+    }
+
+    function updateUI() {
+      statSwings.innerText = GAME.swingsCount;
+      const mm = (GAME.currentProtrusion * 1000).toFixed(1);
+      statProtrusion.innerText = `${mm}mm`;
+      const progress = Math.min(100, Math.round(((GAME.initialProtrusion - GAME.currentProtrusion) / (GAME.initialProtrusion - GAME.flushTarget)) * 100));
+      statDepth.innerText = `${Math.max(0, progress)}%`;
+    }
+
+    // ==========================================
+    // 6. 循環渲染與蓄力【拉高鐵鎚】物理計算
+    // ==========================================
+    let lastTime = performance.now();
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      // 蓄力時：手臂與手掌將鐵鎚高高向後拉起 (Wind-Up Pull Back)
+      if (GAME.isCharging) {
+        const chargeDuration = (now - GAME.chargeStartTime) / 1000;
+        const cycle = Math.sin(chargeDuration * Math.PI * 1.5 - Math.PI / 2);
+        GAME.chargePower = (cycle + 1) / 2;
+
+        gaugeFill.style.width = `${(GAME.chargePower * 100).toFixed(1)}%`;
+        powerPct.innerText = `${Math.round(GAME.chargePower * 100)}%`;
+
+        if (armPivot && !GAME.isStriking) {
+          // 手臂高高舉起：Y 軸最高上升 0.28m, X 軸向後拉 0.15m
+          armPivot.position.set(
+            0.25 + GAME.chargePower * 0.12,
+            GAME.nailBaseY + 0.32 + GAME.chargePower * 0.26,
+            0.0
+          );
+          // 手腕與手臂向後張開蓄力角度
+          armPivot.rotation.z = GAME.chargePower * 0.55;
+        }
+      }
+
+      if (GAME.shakeIntensity > 0.001) {
+        camera.position.x += (Math.random() - 0.5) * GAME.shakeIntensity;
+        camera.position.y += (Math.random() - 0.5) * GAME.shakeIntensity;
+        GAME.shakeIntensity *= 0.88;
+      }
+
+      updateParticles(dt, GAME.isStriking ? GAME.slowMoSpeed : 1.0);
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    window.__game = GAME;
+    window.__ok = true;
+  </script>
+</body>
+</html>
