@@ -585,7 +585,7 @@
   </div>
 
   <div id="race-panel" aria-label="計時賽狀態">
-    <div id="race-clock">45.0 s</div>
+    <div id="race-clock">35.0 s</div>
     <div id="race-status">5 根挑戰 · 首次操作開始</div>
   </div>
   <div id="audio-controls">
@@ -641,13 +641,13 @@
 
     <div id="bottom-control-area">
       <div id="nail-selector" aria-label="選擇釘子"></div>
-      <div id="race-rules">硬漢挑戰 45 秒 · 釘平 +100 分 · 落空 −2 秒，敲歪 −3 秒。越後面越快。</div>
+      <div id="race-rules">地獄挑戰 35 秒 · 釘平 +100 分 · 落空 −3 秒，敲歪 −5 秒。越後面越快。</div>
       <div id="aim-panel">
         <svg id="aim-target" viewBox="-56 -56 112 112" aria-label="釘帽俯視準星，綠圈為中心區">
           <circle r="51" fill="#f1f5f9" />
           <circle r="34" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5" />
           <circle r="22" fill="none" stroke="#94a3b8" stroke-dasharray="2 3" />
-          <circle r="6.2" fill="#bbf7d0" stroke="#047857" />
+          <circle r="4.6" fill="#bbf7d0" stroke="#047857" />
           <path d="M -5 0 H 5 M 0 -5 V 5" stroke="#047857" />
           <g id="aim-crosshair" stroke="#9a3412" stroke-width="2" fill="none"><circle r="5"/><path d="M -13 0 H -7 M 7 0 H 13 M 0 -13 V -7 M 0 7 V 13"/></g>
         </svg>
@@ -675,7 +675,7 @@
         <button id="strike-btn">
           <span>💥 按住拉起鐵鎚 / 放開猛力砸下</span>
         </button>
-        <button id="reset-btn" title="重開 45 秒計時賽">重開</button>
+        <button id="reset-btn" title="重開 35 秒計時賽">重開</button>
       </div>
 
       <div class="hint-bar">
@@ -1104,7 +1104,7 @@
       initialProtrusion: 0.070,
       currentProtrusion: 0.070,
       flushTarget: 0.003,
-      flushTolerance: 0.001,
+      flushTolerance: 0.0008,
       nailBaseY: 0.94,
       nailX: 0.05, nailZ: 0, activeNail: 0,
       currentHeadMode: 'flat',
@@ -1118,7 +1118,7 @@
     };
 
     const AIM = { locked: false, x: .012, z: .006, lockedX: 0, lockedZ: 0, resetAt: performance.now() };
-    const RACE = { duration: 45, phase: 'ready', startedAt: null, remaining: 45, score: 0, completed: 0, broken: 0 };
+    const RACE = { duration: 35, phase: 'ready', startedAt: null, remaining: 35, score: 0, completed: 0, broken: 0 };
     const nails = [];
     const nailButtons = [];
     const nailLayout = [[0.05,0], [-0.025,-0.065], [0.125,-0.065], [-0.025,0.065], [0.125,0.065]];
@@ -1359,14 +1359,14 @@
     }
     function aimQuality(x, z) {
       const error = Math.hypot(x,z);
-      return { error, miss: error > .011, edge: error > .0055,
-        label: error > .011 ? '偏離釘帽 · 會落空' : error > .0055 ? '擦邊 · 力道上限 45%' : error > .002 ? '偏心 · 穿透減弱' : '正中 · 穩定命中',
+      return { error, miss: error > .011, edge: error > .0045,
+        label: error > .011 ? '偏離釘帽 · 會落空' : error > .0045 ? '擦邊 · 力道上限 40%' : error > .0015 ? '偏心 · 穿透減弱' : '正中 · 穩定命中',
         efficiency: error > .011 ? 0 : 1 - .60 * Math.min(1,error/.011) };
     }
     function updateAim(now) {
       if (GAME.currentHeadMode !== 'sharp' || AIM.locked || GAME.isStriking) return;
       const t = (now - AIM.resetAt) / 1000;
-      const pace = 3.3 + (RACE.completed + RACE.broken) * .3;
+      const pace = 4.2 + (RACE.completed + RACE.broken) * .4;
       const phase = AIM.phase ?? 1.1;
       AIM.x = .014 * Math.sin(t * pace + phase);
       AIM.z = .006 * Math.sin(t * pace + phase + .24 * Math.sin(t * 1.3));
@@ -1387,7 +1387,7 @@
         const quality = aimQuality(AIM.lockedX,AIM.lockedZ);
         document.getElementById('aim-reading').textContent = `已鎖定 · ${quality.label}`;
         if (quality.miss) document.getElementById('aim-help').textContent = '準星在釘帽外，這一槌會落空；可重新瞄準。';
-        else if (quality.edge) document.getElementById('aim-help').textContent = '擦邊命中：力量超過 45% 會打歪；可重新瞄準。';
+        else if (quality.edge) document.getElementById('aim-help').textContent = '擦邊命中：力量超過 40% 會打歪；可重新瞄準。';
       }
     }
     function lockAim() {
@@ -1467,7 +1467,7 @@
     function resetNail() {
       if (GAME.isStriking) return;
       cancelCharge(); boss.stop(); boss.lastAt = -Infinity;
-      Object.assign(RACE, {phase:'ready', startedAt:null, remaining:45, score:0, completed:0, broken:0});
+      Object.assign(RACE, {phase:'ready', startedAt:null, remaining:RACE.duration, score:0, completed:0, broken:0});
       GAME.swingsCount = 0;
       for (const nail of nails) { nail.height = GAME.initialProtrusion; nail.state = 'ready'; nail.bend = 0; positionNail(nail); }
       hammerPivot.visible = true;
@@ -1508,7 +1508,7 @@
       const startProtrusion = GAME.currentProtrusion;
       const aim = isSharp ? aimQuality(AIM.lockedX,AIM.lockedZ) : aimQuality(0,0);
       const requestedDrive = Math.pow(power, 1.8) * (isSharp ? 0.092 * aim.efficiency : 0.072);
-      const willBreak = !aim.miss && (requestedDrive > startProtrusion - .002 || (isSharp && (power > .88 || (aim.edge && power > .45))));
+      const willBreak = !aim.miss && (requestedDrive > startProtrusion - (GAME.flushTarget - GAME.flushTolerance) || (isSharp && (power > .86 || (aim.edge && power > .40))));
       const targetProtrusion = aim.miss ? startProtrusion : willBreak ? Math.max(.001, startProtrusion * .60) : Math.max(.0005, startProtrusion - requestedDrive);
       const speed = GAME.slowMoSpeed; // 本次揮擊鎖定倍率。
       const impactY = GAME.nailBaseY + startProtrusion;
@@ -1666,18 +1666,18 @@
       const nail = nails[a.nailIndex];
       if (a.eligible && !a.missed && a.willBreak) {
         nail.state = 'bent'; nail.bend = 1; RACE.broken++; sfx.playCrack();
-      } else if (a.eligible && !a.missed && a.targetProtrusion <= GAME.flushTarget + GAME.flushTolerance && a.targetProtrusion >= .002) {
+      } else if (a.eligible && !a.missed && a.targetProtrusion <= GAME.flushTarget + GAME.flushTolerance && a.targetProtrusion >= GAME.flushTarget - GAME.flushTolerance) {
         nail.state = 'done'; RACE.completed++; RACE.score += 100; sfx.playCheer();
       }
       if (a.eligible) {
-        const penalty = a.missed ? 2 : nail.state === 'bent' ? 3 : 0;
+        const penalty = a.missed ? 3 : nail.state === 'bent' ? 5 : 0;
         RACE.startedAt -= penalty * 1000;
         if (a.missed) boss.play('miss');
         else if (nail.state === 'bent') boss.play('bent');
         else if (nail.state === 'done') boss.play('success');
       }
       positionNail(nail);
-      popupGrade.textContent = a.missed ? '落空！扣 2 秒' : nail.state === 'bent' ? `${a.nailIndex+1} 號打歪！扣 3 秒` : nail.state === 'done' ? `${a.nailIndex+1} 號釘平！+100 分` : '再來一槌';
+      popupGrade.textContent = a.missed ? '落空！扣 3 秒' : nail.state === 'bent' ? `${a.nailIndex+1} 號打歪！扣 5 秒` : nail.state === 'done' ? `${a.nailIndex+1} 號釘平！+100 分` : '再來一槌';
       popupGrade.style.color = nail.state === 'bent' ? '#b91c1c' : '#047857';
       popupDesc.textContent = a.missed ? '準星偏離釘帽，重新瞄準後再控制力道。' : nail.state === 'bent' ? '力道過量或命中擦邊，釘身彎折，這根無法得分。' : nail.state === 'done' ? '漂亮！已切換下一根，尖頭需重新瞄準。' : '依剩餘高度減輕力道，瞄準力量條的綠色區間。';
       popupSubdetail.textContent = `${a.isSharp ? a.aimLabel + ' · ' : ''}本槌釘入 ${ (a.actualDriven*1000).toFixed(1)} mm · 剩餘 ${(a.targetProtrusion*1000).toFixed(1)} mm`;
@@ -1701,7 +1701,7 @@
       const accuracy = GAME.currentHeadMode === 'sharp' && AIM.locked ? aimQuality(AIM.lockedX,AIM.lockedZ) : aimQuality(0,0);
       const coeff = GAME.currentHeadMode === 'sharp' ? .092 * Math.max(.001,accuracy.efficiency) : .072;
       const low = Math.pow(Math.max(0, GAME.currentProtrusion - (GAME.flushTarget + GAME.flushTolerance)) / coeff, 1/1.8);
-      const high = Math.min(GAME.currentHeadMode === 'sharp' ? (accuracy.edge ? .45 : .88) : 1, Math.pow(Math.max(0,GAME.currentProtrusion-.002) / coeff, 1/1.8));
+      const high = Math.min(GAME.currentHeadMode === 'sharp' ? (accuracy.edge ? .40 : .86) : 1, Math.pow(Math.max(0,GAME.currentProtrusion-(GAME.flushTarget-GAME.flushTolerance)) / coeff, 1/1.8));
       const marker = document.getElementById('sweet-marker');
       marker.style.left = `${Math.min(100,low*100)}%`; marker.style.width = `${accuracy.miss ? 0 : Math.max(0,(high-low)*100)}%`;
       marker.textContent = '';
@@ -1726,7 +1726,7 @@
       // 蓄力時：將鐵鎚向後拉起 (Wind-Up Pull Back)
       if (GAME.isCharging) {
         const chargeDuration = (now - GAME.chargeStartTime) / 1000;
-        const cycle = Math.sin(chargeDuration * Math.PI * (1.9 + (RACE.completed + RACE.broken) * .12) - Math.PI / 2);
+        const cycle = Math.sin(chargeDuration * Math.PI * (2.0 + (RACE.completed + RACE.broken) * .14) - Math.PI / 2);
         GAME.chargePower = (cycle + 1) / 2;
 
         gaugeFill.style.width = `${(GAME.chargePower * 100).toFixed(1)}%`;
