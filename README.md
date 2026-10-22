@@ -33,3 +33,7 @@
 - **渲染引擎**：Three.js (WebGL) + OrbitControls + GLTFLoader
 - **3D 建模**：Blender 5.1 (Procedural bmesh, PBR, GLTF export)
 - **音效與配音**：Web Audio API 即時物理合成音效 + Gemini 3.8 Flash TTS 道地台語配音
+
+## 硬漢難度更新（2026-10-22）
+
+每局 45 秒。落空扣 2 秒、敲歪扣 3 秒。尖頭瞄準更快且帶變速，每次重瞄有不同起點；正中區縮至半徑 2mm，擦邊力量上限 45%。釘平高度需落在 2–4mm，尖頭超過 88% 力量會彎釘。隨已完成／打歪釘子數量加快準星與蓄力；綠色力量提示依實際判定更新。原本六段配音保留。修改前備份在 backups/index.before-hard.html。

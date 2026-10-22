@@ -74,7 +74,7 @@ for (const head of ['flat','sharp']) for(const speed of [.25,.5,1]) for(const po
     assert(i<1599,'timeline must terminate');
   }
   const drive=Math.pow(power,1.8)*(head==='sharp'?.092:.072);
-  const expected=drive>.069 || (head==='sharp' && power>.9) ? .042 : Math.max(.0005,.07-drive);
+  const expected=drive>.068 || (head==='sharp' && power>.88) ? .042 : Math.max(.0005,.07-drive);
   assert(Math.abs(previous-expected)<1e-10,'final penetration');
   assert(separated>0,'must rebound before penetration ends'); cases++;
 }
@@ -124,15 +124,15 @@ assert(run('nails[0].parts[0].mesh.geometry !== nails[1].parts[0].mesh.geometry'
 assert(run('nails[0].parts.some(p=>p.original.some((v,i)=>Math.abs(v-p.mesh.geometry.attributes.position.array[i])>1e-6))'),'visible bend deforms geometry');
 assert(run('nails[1].parts.every(p=>p.original.every((v,i)=>v===p.mesh.geometry.attributes.position.array[i]))'),'other geometry unchanged');
 run('selectNail(0)');assert.equal(run('GAME.activeNail'),1,'broken nail unavailable');
-run('resetNail()');clockNow=100;run('startCharging()');clockNow=60100;run('updateRaceClock(performance.now())');
+run('resetNail()');clockNow=100;run('startCharging()');clockNow=45100;run('updateRaceClock(performance.now())');
 assert.equal(run('RACE.phase'),'finished');assert.equal(run('GAME.isCharging'),false,'deadline cancels charge');
-run('resetNail()');clockNow=100000;run('startRace()');clockNow=159900;run(`executeHammerStrike(${perfectPower})`);
-clockNow=160001;run('updateRaceClock(performance.now())');for(let i=0;i<300;i++)run('updateStrike(1/60)');
+run('resetNail()');clockNow=100000;run('startRace()');clockNow=144900;run(`executeHammerStrike(${perfectPower})`);
+clockNow=145001;run('updateRaceClock(performance.now())');for(let i=0;i<300;i++)run('updateStrike(1/60)');
 assert.equal(run('RACE.score'),0,'late impact cannot score');assert.equal(run('nails[0].height'),.07);
 run('resetNail()');clockNow=200000;run(`executeHammerStrike(${perfectPower}); updateStrike(.6)`);
-clockNow=260001;run('updateRaceClock(performance.now())');for(let i=0;i<300;i++)run('updateStrike(1/60)');
+clockNow=245001;run('updateRaceClock(performance.now())');for(let i=0;i<300;i++)run('updateStrike(1/60)');
 assert.equal(run('RACE.score'),100,'impact before deadline is credited');assert.equal(run('RACE.phase'),'finished');
-run('resetNail()');assert.equal(run('RACE.score'),0);assert.equal(run('RACE.remaining'),60);assert(run("nails.every(n=>n.state==='ready' && n.height===.07 && n.bend===0)"));
+run('resetNail()');assert.equal(run('RACE.score'),0);assert.equal(run('RACE.remaining'),45);assert(run("nails.every(n=>n.state==='ready' && n.height===.07 && n.bend===0)"));
 // Sharp mode requires an explicit aim lock before charging or striking.
 run("resetNail(); setHeadMode('sharp'); executeHammerStrike(.5)");
 assert.equal(run('GAME.swingsCount'),0,'cannot bypass aim stage');
@@ -149,19 +149,19 @@ const sharpHit=(x,z,power)=>{
 };
 sharpHit(0,0,.5);const centerHeight=run('nails[0].height');
 assert(centerHeight<.07);assert.equal(run('AIM.locked'),false,'every swing requires fresh aim');
-sharpHit(.006,0,.5);assert(run('nails[0].height')>centerHeight,'off-center loses penetration');
+sharpHit(.004,0,.5);assert(run('nails[0].height')>centerHeight,'off-center loses penetration');
 sharpHit(.009,0,.7);assert.equal(run('nails[0].state'),'bent','edge heavy hit bends nail');
 sharpHit(.014,.005,1);assert.equal(run('nails[0].height'),.07,'miss does not move nail');assert.equal(run('RACE.score'),0);assert.equal(run('RACE.broken'),0);assert.equal(run('GAME.swingsCount'),1,'miss costs a swing');
 run("resetNail(); setHeadMode('sharp'); AIM.locked=true; AIM.lockedX=.006; AIM.lockedZ=.004; executeHammerStrike(.4); updateStrike(activeStrike.launch+activeStrike.approach+activeStrike.freeze)");
 assert(run(`(()=>{scene.updateMatrixWorld(true); const p=new THREE.Vector3(-.0975,.012,0); hammerObj.getObjectByName('Hammer_SharpHead').localToWorld(p); return Math.abs(p.x-(GAME.nailX+.006))<1e-8 && Math.abs(p.z-(GAME.nailZ+.004))<1e-8;})()`),'sharp contact follows locked aim in world coordinates');
 for(let i=0;i<300;i++)run('updateStrike(1/60)');
-run("resetNail(); setHeadMode('sharp'); handleStrikePress()");clockNow+=60001;run('updateRaceClock(performance.now()); handleStrikePress()');
+run("resetNail(); setHeadMode('sharp'); handleStrikePress()");clockNow+=45001;run('updateRaceClock(performance.now()); handleStrikePress()');
 assert.equal(run('RACE.phase'),'finished');assert.equal(run('AIM.locked'),false);assert.equal(run('GAME.isCharging'),false,'deadline blocks power stage');
 run("resetNail(); setHeadMode('flat'); handleStrikePress()");assert.equal(run('GAME.isCharging'),true,'flat head still charges immediately');run('cancelCharge()');
 console.log(`PASS: ${cases} timeline/rebound cases, synchronized counter, descending camera, hammer-only asset, reduced motion, consecutive strikes, five-nail scoring, deformation isolation, deadline boundaries, restart, sharp aim gating, accuracy, miss and edge-hit outcomes.`);
 
 // Voice events follow authoritative outcomes, never charge strength alone.
-run("resetNail(); voiceEvents.length=0; setHeadMode('flat')"); hit(.96);
+run("resetNail(); voiceEvents.length=0; setHeadMode('flat')"); hit(perfectPower);
 assert.equal(run("voiceEvents.join(',')"),'intro,success');
 run("resetNail(); voiceEvents.length=0"); hit(1);
 assert.equal(run("voiceEvents.join(',')"),'intro,bent');
@@ -169,7 +169,18 @@ run("voiceEvents.length=0"); sharpHit(.014,.005,1);
 assert.equal(run("voiceEvents.join(',')"),'intro,miss');
 run("resetNail(); voiceEvents.length=0; setHeadMode('flat')"); hit(.4); hit(.4);
 assert.equal(run("voiceEvents.join(',')"),'intro','partial hits stay quiet; intro only once per race');
-run("resetNail(); voiceEvents.length=0; executeHammerStrike(.96)"); clockNow+=60001;
+run("resetNail(); voiceEvents.length=0; executeHammerStrike(.96)"); clockNow+=45001;
 for(let i=0;i<300;i++)run('updateStrike(1/60)');
 assert.equal(run("voiceEvents.join(',')"),'intro','late impact cannot earn success voice');
 console.log('PASS: intro once, success/bent/miss routing, partial-hit silence, late-hit silence.');
+
+// Hard mode uses honest power markers, faster pacing and deterministic penalties.
+run("resetNail(); setHeadMode('flat')"); assert.equal(run('RACE.duration'),45); hit(1); assert.equal(run('RACE.remaining'),42);
+sharpHit(.014,.005,1); assert.equal(run('RACE.remaining'),43);
+assert.equal(run('aimQuality(.006,0).edge'),true);assert.equal(run('aimQuality(.0025,0).label'),'偏心 · 穿透減弱');
+for (const head of ['flat','sharp']) for (const height of [.07,.03,.01]) {
+ run(`resetNail(); setHeadMode('${head}'); GAME.currentProtrusion=${height}; nails[0].height=${height}; AIM.locked=true; AIM.lockedX=0; AIM.lockedZ=0; updateUI();`);
+ const low=Number(el('sweet-marker').style.left.replace('%',''))/100, width=Number(el('sweet-marker').style.width.replace('%',''))/100;
+ if(width>0){hit(low+width/2);assert.equal(run('nails[0].state'),'done','displayed green interval must succeed');}
+}
+console.log('PASS: 45-second hard mode, miss/bend time penalties and accurate narrowed green zones.');
