@@ -592,7 +592,7 @@
   </div>
 
   <div id="race-panel" aria-label="計時賽狀態">
-    <div id="race-clock">25.0 s</div>
+    <div id="race-clock">20.0 s</div>
     <div id="race-status">5 根挑戰 · 首次操作開始</div>
   </div>
   <div id="audio-controls">
@@ -648,7 +648,7 @@
 
     <div id="bottom-control-area">
       <div id="nail-selector" aria-label="選擇釘子"></div>
-      <div id="race-rules">煉獄挑戰 25 秒 · 釘平 +100 分 · 落空 −4 秒，敲歪 −7 秒。越後面越快。</div>
+      <div id="race-rules">極限挑戰 20 秒 · 釘平 +100 分 · 落空 −5 秒，敲歪 −9 秒。越後面越快。</div>
       <div id="aim-panel">
         <svg id="aim-target" viewBox="-56 -56 112 112" aria-label="釘帽俯視準星，綠圈為中心區">
           <circle r="51" fill="#f1f5f9" />
@@ -682,7 +682,7 @@
         <button id="strike-btn">
           <span>💥 按住拉起鐵鎚 / 放開猛力砸下</span>
         </button>
-        <button id="reset-btn" title="重開 25 秒計時賽">重開</button>
+        <button id="reset-btn" title="重開 20 秒計時賽">重開</button>
       </div>
 
       <div class="hint-bar">
@@ -1125,7 +1125,7 @@
     };
 
     const AIM = { locked: false, x: .012, z: .006, lockedX: 0, lockedZ: 0, resetAt: performance.now() };
-    const RACE = { duration: 25, phase: 'ready', startedAt: null, remaining: 25, score: 0, completed: 0, broken: 0 };
+    const RACE = { duration: 20, phase: 'ready', startedAt: null, remaining: 20, score: 0, completed: 0, broken: 0 };
     const nails = [];
     const nailButtons = [];
     const nailLayout = [[0.05,0], [-0.025,-0.065], [0.125,-0.065], [-0.025,0.065], [0.125,0.065]];
@@ -1373,7 +1373,7 @@
     function updateAim(now) {
       if (GAME.currentHeadMode !== 'sharp' || AIM.locked || GAME.isStriking) return;
       const t = (now - AIM.resetAt) / 1000;
-      const pace = 5.4 + (RACE.completed + RACE.broken) * .55;
+      const pace = 6.6 + (RACE.completed + RACE.broken) * .65;
       const phase = AIM.phase ?? 1.1;
       AIM.x = .014 * Math.sin(t * pace + phase);
       AIM.z = .006 * Math.sin(t * pace + phase + .24 * Math.sin(t * 1.3));
@@ -1677,14 +1677,14 @@
         nail.state = 'done'; RACE.completed++; RACE.score += 100; sfx.playCheer();
       }
       if (a.eligible) {
-        const penalty = a.missed ? 4 : nail.state === 'bent' ? 7 : 0;
+        const penalty = a.missed ? 5 : nail.state === 'bent' ? 9 : 0;
         RACE.startedAt -= penalty * 1000;
         if (a.missed) boss.play('miss');
         else if (nail.state === 'bent') boss.play('bent');
         else if (nail.state === 'done') boss.play('success');
       }
       positionNail(nail);
-      popupGrade.textContent = a.missed ? '落空！扣 4 秒' : nail.state === 'bent' ? `${a.nailIndex+1} 號打歪！扣 7 秒` : nail.state === 'done' ? `${a.nailIndex+1} 號釘平！+100 分` : '再來一槌';
+      popupGrade.textContent = a.missed ? '落空！扣 5 秒' : nail.state === 'bent' ? `${a.nailIndex+1} 號打歪！扣 9 秒` : nail.state === 'done' ? `${a.nailIndex+1} 號釘平！+100 分` : '再來一槌';
       popupGrade.style.color = nail.state === 'bent' ? '#b91c1c' : '#047857';
       popupDesc.textContent = a.missed ? '準星偏離釘帽，重新瞄準後再控制力道。' : nail.state === 'bent' ? '力道過量或命中擦邊，釘身彎折，這根無法得分。' : nail.state === 'done' ? '漂亮！已切換下一根，尖頭需重新瞄準。' : '依剩餘高度減輕力道，瞄準力量條的綠色區間。';
       popupSubdetail.textContent = `${a.isSharp ? a.aimLabel + ' · ' : ''}本槌釘入 ${ (a.actualDriven*1000).toFixed(1)} mm · 剩餘 ${(a.targetProtrusion*1000).toFixed(1)} mm`;

@@ -1,16 +1,18 @@
-煉獄挑戰 1.3 完整專案
+極限挑戰 1.4 完整專案
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer
 
 完整 ZIP
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer_hard.zip
 
 上版 ZIP
-/Users/chenchunchih/Desktop/voice to text/night_market_hammer_hard_v1.2.1.zip
+/Users/chenchunchih/Desktop/voice to text/night_market_hammer_hard_v1.3.zip
 
 程式及資源路徑
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/.gitignore
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/.nojekyll
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/README.md
+/Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-extreme/index.html
+/Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-extreme/tests/strike-timeline.cjs
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-guide-fix/index.html
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-hell/README.md
 /Users/chenchunchih/Desktop/voice to text/night_market_hammer/backups/before-hell/index.html
